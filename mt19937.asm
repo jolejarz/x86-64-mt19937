@@ -1,3 +1,8 @@
+; mt19937.asm - This is a low-level implementation of the Mersenne Twister MT19937 pseudorandom number generator.
+;               It is written in x86-64 assembly language.
+
+; These values are used for the algorithm.
+;
 %define n 624
 %define m 397
 %define w 32
@@ -83,8 +88,8 @@ _start:
 
 	loop _start_loop_print
 
-	mov rax, 60
-	xor rdi, rdi
+	mov rax, 60   ; Terminate the program.
+	xor rdi, rdi  ; Set exit code 0.
 	syscall
 
 _mt_init:
@@ -223,10 +228,12 @@ _mt_get:
 	ret
 	
 _print:
-	mov rax, 1
-	mov rdi, 1
-	mov rsi, rbx
-	mov rdx, 11
+	xor rax, rax  ; Print the pseudorandom number.
+	inc rax       ; Set RAX = 1 (Linux system call 1).
+	xor rdi, rdi  ; Set
+	inc rdi       ; RDI = 1 for standard output.
+	mov rsi, rbx  ; RBX points to the string to be printed.
+	mov rdx, 11   ; Print at most 11 bytes.
 	syscall
 	ret
 
@@ -234,41 +241,46 @@ _print_number:
 	; The 32-bit decimal number to convert to ASCII is in eax
 	; The ASCII string to print is at [rbx]
 
-	mov r8, rbx
-	mov r9, rbx
+	mov r8, rbx  ; Initially, set R8 and R9 to both
+	mov r9, rbx  ; point to the beginning of the string.
 
-	push rax
+	push rax  ; Save the number to be printed.
 
 	_print_number_loop:
 
-		xor edx, edx
-		pop rax
-		mov ecx, 10
-		div ecx
-		push rax
-		add edx, 0x30
-		mov [rbx], dl
-		inc rbx
-		inc r9
-		cmp rax, 0
-		jne _print_number_loop
+		xor edx, edx  ;
+		pop rax       ; Retrieve the dividend.
+		mov ecx, 10   ;
+		div ecx       ; Divide by 10.
+
+		push rax  ; Save the divisor to be used as the dividend in the next iteration of the loop.
+
+		or edx, 0x30  ; Convert the remainder to ASCII.
+
+		mov [rbx], dl  ; Save the ASCII character.
+		inc rbx        ; Increment the character position.
+		inc r9         ; Increment R9 to match the current character position.
+
+		cmp rax, 0              ; If the integer quotient is 0, then exit the loop.
+		jne _print_number_loop  ;
 	
-	add rsp, 8
-	push r9
-	dec r9
+	add rsp, 8  ; Realign the stack.
+
+	mov [r9], byte 0xA  ; Insert a line feed at the end of the string.
+
+	dec r9  ; Decrement R9. This is the end of the string representing the integer to be printed.
 
 	_print_number_loop_swap:
 
-		mov al, [r9]
-		mov dl, [r8]
-		mov [r8], al
-		mov [r9], dl
-		inc r8
-		dec r9
-		cmp r8, r9
-		jl _print_number_loop_swap
+		mov al, [r9]  ; Swap the characters at the beginning and end of the string.
+		mov dl, [r8]  ;
+		mov [r8], al  ;
+		mov [r9], dl  ;
 
-	pop r9
-	mov [r9], byte 0xA
+		inc r8  ; Increment R8.
+		dec r9  ; Decrement R9.
+
+		cmp r8, r9                  ; If R8 >= R9, then the swapping of characters is complete.
+		jl _print_number_loop_swap  ;
 
 	ret
