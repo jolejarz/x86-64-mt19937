@@ -96,134 +96,136 @@ _mt_init:
 	
 	; EAX contains the seed
 
-	mov ebx, state_list
+	mov ebx, state_list  ; EBX points to the current state in the state array.
 
-	mov r8, 0
-	mov rcx, n
+	xor r8, r8  ; R8 is the state index.
+
+	mov rcx, n  ; Fill in all n state values.
+
 	_mt_init_loop:
 
-		mov [ebx], eax
+		mov [ebx], eax  ; Set the state.
 
-		inc r8
-		dec rcx
-		jz _mt_init_loop_end
+		inc r8  ; Increment the state index.
 
-		add ebx, 4
+		dec rcx               ;
+		jz _mt_init_loop_end  ; When RCX=0, all n state values have been set.
 
-		mov edx, eax
-		shr edx, w-2
-		xor eax, edx
-		mov edx, f
-		mul edx
-		add eax, r8d
+		add ebx, 4  ; Increment the state index pointer.
+
+		mov edx, eax  ;
+		shr edx, w-2  ;
+		xor eax, edx  ;
+		mov edx, f    ;
+		mul edx       ;
+		add eax, r8d  ; EAX = f * (EAX ^ (EAX >> (w-2))) + R8D
 
 		jmp _mt_init_loop
 
 	_mt_init_loop_end:
 
-	mov ebx, state_index
-	mov [ebx], dword 0
+	mov ebx, state_index  ;
+	mov [ebx], dword 0    ; Set the state index to 0.
 
 	ret
 
 _mt_get:
 
-	push rcx
+	push rcx  ; RCX is used as a loop index in the calling function. Save it.
 
-	mov edi, [state_index]
-	mov esi, edi
-	cmp esi, n-1
-	jl _mt_get_1
-		sub esi, n-1
-		jmp _mt_get_2
-	_mt_get_1:
-		add esi, 1
-	_mt_get_2:
+	mov edi, [state_index]  ; EDI = index of current state
 
-	mov r8, state_list
-	xor rax, rax
-	mov eax, edi
-	mov ecx, 4
-	mul ecx
-	add r8, rax
-	mov r9, state_list
-	xor rax, rax
-	mov eax, esi
-	mov ecx, 4
-	mul ecx
-	add r9, rax
+	mov esi, edi           ;
+	cmp esi, n-1           ;
+	jl _mt_get_1           ;
+		xor esi, esi   ;
+		jmp _mt_get_2  ;
+	_mt_get_1:             ;
+		inc esi        ;
+	_mt_get_2:             ; ESI = index of state n-1 iterations before the current state (modulo n)
 
-	mov r8d, [r8]
-	mov r10d, UMASK
-	and r8d, r10d
-	mov r9d, [r9]
-	mov r11d, LMASK
-	and r9d, r11d
+	mov r8, state_list  ;
+	xor eax, eax        ;
+	mov eax, edi        ;
+	shl eax, 2          ;
+	add r8, rax         ; R8 = pointer to the current state
 
-	or r8d, r9d
+	mov r9, state_list  ;
+	xor eax, eax        ;
+	mov eax, esi        ;
+	shl eax, 2          ;
+	add r9, rax         ; R9 = pointer to the state n-1 iterations before the current state (modulo n)
 
-	mov r10d, r8d
-	shr r10d, 1
-	test r8d, 1
-	jz _mt_get_3
-		xor r10d, a
-	_mt_get_3:
+	mov r8d, [r8]    ;
+	mov r10d, UMASK  ;
+	and r8d, r10d    ; R8D = [R8] & UMASK
 
-	mov edi, [state_index]
-	mov esi, edi
-	cmp esi, n-m
-	jl _mt_get_4
-		sub esi, n-m
-		jmp _mt_get_5
-	_mt_get_4:
-		add esi, m
-	_mt_get_5:
+	mov r9d, [r9]    ;
+	mov r11d, LMASK  ;
+	and r9d, r11d    ; R9D = [R9] & LMASK
 
-	mov r8, state_list
-	xor rax, rax
-	mov eax, edi
-	mov ecx, 4
-	mul ecx
-	add r8, rax
-	mov r9, state_list
-	xor rax, rax
-	mov eax, esi
-	mov ecx, 4
-	mul ecx
-	add r9, rax
+	or r8d, r9d  ; R8D |= R9D
 
-	mov r9d, [r9]
-	xor r9d, r10d
-	mov [r8], r9d
+	mov r10d, r8d        ;
+	shr r10d, 1          ;
+	test r8d, 1          ;
+	jz _mt_get_3         ;
+		xor r10d, a  ;
+	_mt_get_3:           ; R10D = (R8D % 2 == 0) ? R8D / 2 : (R8D / 2) ^ a
 
-	cmp edi, n-1
-	je _mt_get_6
-		inc edi
-		jmp _mt_get_7
-	_mt_get_6:
-		xor edi, edi
-	_mt_get_7:
-	mov [state_index], edi
+	mov esi, edi           ;
+	cmp esi, n-m           ;
+	jl _mt_get_4           ;
+		xor esi, esi   ;
+		jmp _mt_get_5  ;
+	_mt_get_4:             ;
+		add esi, m     ;
+	_mt_get_5:             ; ESI = index of state n-m iterations before the current state (modulo n)
 
-	mov r8d, r9d
-	shr r9d, u
-	xor r8d, r9d
+	mov r8, state_list  ;
+	xor eax, eax        ;
+	mov eax, edi        ;
+	shl eax, 2          ;
+	add r8, rax         ; R8 = pointer to the current state
 
-	mov r9d, r8d
-	shl r9d, s
-	and r9d, b
-	xor r8d, r9d
+	mov r9, state_list  ;
+	xor eax, eax        ;
+	mov eax, esi        ;
+	shl eax, 2          ;
+	add r9, rax         ; R9 = pointer to the state n-m iterations before the current state (modulo n)
 
-	mov r9d, r8d
-	shl r9d, t
-	and r9d, c
-	xor r8d, r9d
+	mov r9d, [r9]  ;
+	xor r9d, r10d  ;
+	mov [r8], r9d  ; [R8] = [R9] ^ R10D
 
-	mov r9d, r8d
-	shr r9d, l
-	xor r8d, r9d
+	cmp edi, n-1            ;
+	je _mt_get_6            ;
+		inc edi         ;
+		jmp _mt_get_7   ;
+	_mt_get_6:              ;
+		xor edi, edi    ;
+	_mt_get_7:              ;
+	mov [state_index], edi  ; Increment and update the state index (modulo n).
 
-	pop rcx
+	mov r8d, r9d  ;
+	shr r9d, u    ;
+	xor r8d, r9d  ; R8D = R9D ^ (R9D >> u)
+
+	mov r9d, r8d  ;
+	shl r9d, s    ;
+	and r9d, b    ;
+	xor r8d, r9d  ; R8D ^= (R8D << s) & b
+
+	mov r9d, r8d  ;
+	shl r9d, t    ;
+	and r9d, c    ;
+	xor r8d, r9d  ; R8D ^= (R8D << t) & c
+
+	mov r9d, r8d  ;
+	shr r9d, l    ;
+	xor r8d, r9d  ; R8D ^= R8D >> l
+
+	pop rcx  ; Restore the loop index for the calling function.
 
 	ret
 	
@@ -235,6 +237,7 @@ _print:
 	mov rsi, rbx  ; RBX points to the string to be printed.
 	mov rdx, 11   ; Print at most 11 bytes.
 	syscall
+
 	ret
 
 _print_number:
