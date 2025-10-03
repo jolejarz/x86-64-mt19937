@@ -1,50 +1,52 @@
 ; mt19937.asm - This is a low-level implementation of the Mersenne Twister MT19937 pseudorandom number generator.
-;               It is written in x86-64 assembly language.
-
-; These values are used for the algorithm.
+;               It is written in x86-64 assembly language and runs on Linux.
 ;
-%define n 624
-%define m 397
-%define w 32
-%define r 31
-%define UMASK 0x80000000
-%define LMASK 0x7FFFFFFF
-%define a 0x9908B0DF
-%define u 11
-%define s 7
-%define t 15
-%define l 18
-%define b 0x9D2C5680
-%define c 0xEFC60000
-%define f 1812433253
+;               The program initializes the generator with seed 1 and calculates the first 10 pseudorandom numbers.
+;               It then sends the results to standard output.
+;
+
+%define n 624             ; These values are used for the algorithm.
+%define m 397             ;
+%define w 32              ;
+%define r 31              ;
+%define UMASK 0x80000000  ;
+%define LMASK 0x7FFFFFFF  ;
+%define a 0x9908B0DF      ;
+%define u 11              ;
+%define s 7               ;
+%define t 15              ;
+%define l 18              ;
+%define b 0x9D2C5680      ;
+%define c 0xEFC60000      ;
+%define f 1812433253      ;
 
 section .data
 
-	state_index dd 0
+	state_index dd 0  ; This is the current index into the state list.
 
-	state_list times n dd 0
+	state_list times n dd 0  ; This is the state list array.
 
-	num times 11 db 0
-	    times 11 db 0
-	    times 11 db 0
-	    times 11 db 0
-	    times 11 db 0
-	    times 11 db 0
-	    times 11 db 0
-	    times 11 db 0
-	    times 11 db 0
-	    times 11 db 0
+	num_decimal dd 0  ; This array stores the first 10 pseudorandom numbers.
+	            dd 0  ;
+	            dd 0  ;
+	            dd 0  ;
+	            dd 0  ;
+	            dd 0  ;
+	            dd 0  ;
+	            dd 0  ;
+	            dd 0  ;
+	            dd 0  ;
 
-	num_decimal dd 0
-	            dd 0
-	            dd 0
-	            dd 0
-	            dd 0
-	            dd 0
-	            dd 0
-	            dd 0
-	            dd 0
-	            dd 0
+	num times 11 db 0  ; This array stores the ASCII conversions of the first 10 pseudorandom numbers.
+	    times 11 db 0  ;
+	    times 11 db 0  ;
+	    times 11 db 0  ;
+	    times 11 db 0  ;
+	    times 11 db 0  ;
+	    times 11 db 0  ;
+	    times 11 db 0  ;
+	    times 11 db 0  ;
+	    times 11 db 0  ;
 
 section .text
 
@@ -52,41 +54,42 @@ section .text
 
 _start:
 
-	mov eax, 1
-	call _mt_init
+	mov eax, 1     ;
+	call _mt_init  ; Initialize the state list with seed 1.
 
-	mov rcx, 10
-	mov rbx, num_decimal
+	mov rcx, 10           ; Retrieve the first 10 pseudorandom numbers
+	mov rbx, num_decimal  ; and save them in the array at position num_decimal.
 
 	_start_loop_calc:
 
-		call _mt_get
-		mov [rbx], r8d
-		add rbx, 4
+		call _mt_get    ; Retrieve the next pseudorandom number.
+		mov [rbx], r8d  ; Save it.
+		add rbx, 4      ; Increment the pointer to the state list.
 
-	loop _start_loop_calc
+		loop _start_loop_calc
 
-	mov rcx, 10
-	mov rax, num_decimal
-	mov rbx, num
-	sub rax, 4
-	sub rbx, 11
+	mov rcx, 10           ; Each of the 10 pseudorandom numbers
+	mov rax, num_decimal  ; must be converted to ASCII format.
+	mov rbx, num          ; The array of ASCII strings is at position num.
+
+	sub rax, 4   ; Initialize the pointer to the decimal number array
+	sub rbx, 11  ; and the pointer to the ASCII string array.
 
 	_start_loop_print:
 
-		add rax, 4
-		add rbx, 11
-		push rax
-		push rcx
-		push rbx
-		mov eax, [rax]
-		call _print_number
-		pop rbx
-		call _print
-		pop rcx
-		pop rax
+		add rax, 4   ; Move to the next pseudorandom number to be converted.
+		add rbx, 11  ;
 
-	loop _start_loop_print
+		push rax  ; Save the pointer to the decimal number array.
+
+		mov eax, [rax]      ;
+		call _print_number  ; Convert the pseudorandom number to ASCII format.
+
+		call _print  ; Print it.
+
+		pop rax  ; Restore the pointer to the decimal number array.
+
+		loop _start_loop_print
 
 	mov rax, 60   ; Terminate the program.
 	xor rdi, rdi  ; Set exit code 0.
@@ -230,6 +233,9 @@ _mt_get:
 	ret
 	
 _print:
+
+	push rcx  ; RCX is used as a loop index in the calling function. Save it.
+
 	xor rax, rax  ; Print the pseudorandom number.
 	inc rax       ; Set RAX = 1 (Linux system call 1).
 	xor rdi, rdi  ; Set
@@ -238,11 +244,17 @@ _print:
 	mov rdx, 11   ; Print at most 11 bytes.
 	syscall
 
+	pop rcx  ; Restore the loop index for the calling function.
+
 	ret
 
 _print_number:
+
 	; The 32-bit decimal number to convert to ASCII is in eax
 	; The ASCII string to print is at [rbx]
+
+	push rbx  ; Save RBX.
+	push rcx  ; RCX is used as a loop index in the calling function. Save it.
 
 	mov r8, rbx  ; Initially, set R8 and R9 to both
 	mov r9, rbx  ; point to the beginning of the string.
@@ -285,5 +297,8 @@ _print_number:
 
 		cmp r8, r9                  ; If R8 >= R9, then the swapping of characters is complete.
 		jl _print_number_loop_swap  ;
+
+	pop rcx  ; Restore the loop index for the calling function.
+	pop rbx  ; Restore RBX.
 
 	ret
