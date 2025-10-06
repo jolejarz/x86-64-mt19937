@@ -25,10 +25,19 @@ section .data
 
 section .text
 
-	global mt19937_init  ; This function initializes the generator, with the seed specified in EAX.
-	global mt19937_get   ; This function returns the next pseudorandom number in R8D.
+	global mt19937_init  ; This function initializes the generator, with the seed specified in EDI.
+	global mt19937_get   ; This function returns the next pseudorandom number in EAX.
 
 mt19937_init:
+
+	push rax
+	push rbx
+	push rcx
+	push rdx
+	push r8
+	push r9
+
+	mov eax, edi  ; EAX is the seed.
 	
 	mov ebx, state_list  ; EBX points to the current state in the state array.
 
@@ -61,11 +70,24 @@ mt19937_init:
 	mov ebx, state_index  ;
 	mov [ebx], dword 0    ; Set the state index to 0.
 
+	pop r9
+	pop r8
+	pop rdx
+	pop rcx
+	pop rbx
+	pop rax
+
 	ret
 
 mt19937_get:
 
-	push rcx  ; RCX is used as a loop index in the calling function. Save it.
+	push rcx
+	push rsi
+	push rdi
+	push r8
+	push r9
+	push r10
+	push r11
 
 	mov edi, [state_index]  ; EDI = index of current state
 
@@ -159,6 +181,14 @@ mt19937_get:
 	shr r9d, l    ;
 	xor r8d, r9d  ; R8D ^= R8D >> l
 
-	pop rcx  ; Restore the loop index for the calling function.
+	mov eax, r8d  ; Return the next pseudorandom number.
+
+	pop r11
+	pop r10
+	pop r9
+	pop r8
+	pop rdi
+	pop rsi
+	pop rcx
 
 	ret
