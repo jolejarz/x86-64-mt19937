@@ -1,5 +1,5 @@
 ; mt19937.asm - This is a low-level implementation of the Mersenne Twister MT19937 pseudorandom number generator.
-;               It is written in x86-64 assembly language and runs on Linux.
+;               It is written in x86-64 assembly.
 ;
 
 %define n 624             ; These values are used for the algorithm.
