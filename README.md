@@ -20,7 +20,7 @@ The API in mt19937.asm consists of the following functions.
 
 ## mt19937_init
 
-This function initializes the generator. The seed is passed as a parameter in EAX.
+This function initializes the generator using the seed specified in EAX.
 
 ## mt19937_get
 
