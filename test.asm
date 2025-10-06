@@ -1,4 +1,4 @@
-; test.asm - This program demonstrates the use of the functions in mt19937.asm.
+; test.asm - This program runs on Linux and demonstrates the use of the functions in mt19937.asm.
 ;            It initializes the generator with seed 1 and calculates the first 10 pseudorandom numbers.
 ;            It then sends the results to standard output.
 ;
