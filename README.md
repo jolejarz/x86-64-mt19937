@@ -11,7 +11,8 @@ All files in this repository are released under the [MIT License](https://mit-li
 The repository contains the following files.
 
 * **mt19937.asm**: This is the library for the Mersenne Twister MT19937 pseudorandom number generator.
-* **test.asm**: This program demonstrates the use of the library. It sets the seed to 1, calculates the first 10 pseudorandom numbers, and prints them.
+* **test_asm.asm**: This program demonstrates the use of the library in an x86-64 assembly program. It sets the seed to 1, calculates the first 10 pseudorandom numbers, and prints them.
+* **test_c.c**: This program demonstrates the use of the library in a C program. It sets the seed to 1, calculates the first 10 pseudorandom numbers, and prints them.
 * **compile.sh**: This script compiles the object files and links them.
 
 # Functions
@@ -20,8 +21,8 @@ The API in mt19937.asm consists of the following functions.
 
 ## mt19937_init
 
-This function initializes the generator using the seed specified in EAX.
+This function initializes the generator using the seed specified in EDI.
 
 ## mt19937_get
 
-This function calculates the next pseudorandom number and returns it in R8D.
+This function calculates the next pseudorandom number and returns it in EAX.
