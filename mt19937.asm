@@ -43,7 +43,7 @@ mt19937_init:
 		inc r8  ; Increment the state index.
 
 		dec rcx                   ;
-		jz mt19937_init_loop_end  ; When RCX=0, all n state values have been set.
+		jz mt19937_init_loop_end  ; When RCX = 0, all n state values have been set.
 
 		add ebx, 4  ; Increment the state index pointer.
 
@@ -72,10 +72,10 @@ mt19937_get:
 	mov esi, edi           ;
 	cmp esi, n-1           ;
 	jl mt19937_get_1       ;
-		xor esi, esi       ;
-		jmp mt19937_get_2  ;
+	    xor esi, esi       ;
+	    jmp mt19937_get_2  ;
 	mt19937_get_1:         ;
-		inc esi            ;
+	    inc esi            ;
 	mt19937_get_2:         ; ESI = index of state n-1 iterations before the current state (modulo n)
 
 	mov r8, state_list  ;
@@ -104,16 +104,16 @@ mt19937_get:
 	shr r10d, 1       ;
 	test r8d, 1       ;
 	jz mt19937_get_3  ;
-		xor r10d, a   ;
+	    xor r10d, a   ;
 	mt19937_get_3:    ; R10D = (R8D % 2 == 0) ? R8D / 2 : (R8D / 2) ^ a
 
 	mov esi, edi           ;
 	cmp esi, n-m           ;
 	jl mt19937_get_4       ;
-		xor esi, esi       ;
-		jmp mt19937_get_5  ;
+	    xor esi, esi       ;
+	    jmp mt19937_get_5  ;
 	mt19937_get_4:         ;
-		add esi, m         ;
+	    add esi, m         ;
 	mt19937_get_5:         ; ESI = index of state n-m iterations before the current state (modulo n)
 
 	mov r8, state_list  ;
@@ -134,8 +134,8 @@ mt19937_get:
 
 	cmp edi, n-1            ;
 	je mt19937_get_6        ;
-		inc edi             ;
-		jmp mt19937_get_7   ;
+	    inc edi             ;
+	    jmp mt19937_get_7   ;
 	mt19937_get_6:          ;
 		xor edi, edi        ;
 	mt19937_get_7:          ;
