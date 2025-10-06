@@ -1,6 +1,6 @@
 # Low-level Mersenne Twister
 
-This is an implementation of the Mersenne Twister MT19937 pseudorandom number generator in x86-64 assembly.
+This is an implementation of the Mersenne Twister MT19937 pseudorandom number generator in x86-64 assembly. It is compiled using NASM and runs on Linux.
 
 # License and Copyright
 
