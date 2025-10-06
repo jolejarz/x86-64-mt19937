@@ -18,14 +18,10 @@ The repository contains the following files.
 
 The API in mt19937.asm consists of the following functions.
 
-```
-mt19937_init
-```
+## mt19937_init
 
 This function initializes the generator. The seed is passed as a parameter in EAX.
 
-```
-mt19937_get
-```
+## mt19937_get
 
 This function calculates the next pseudorandom number and returns it in R8D.
