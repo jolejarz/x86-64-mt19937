@@ -137,7 +137,7 @@ mt19937_get:
 	    inc edi             ;
 	    jmp mt19937_get_7   ;
 	mt19937_get_6:          ;
-		xor edi, edi        ;
+	    xor edi, edi        ;
 	mt19937_get_7:          ;
 	mov [state_index], edi  ; Increment and update the state index (modulo n).
 
